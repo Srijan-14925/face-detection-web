@@ -12,11 +12,7 @@
  */
 window.VisionAI = window.VisionAI || {};
 
-window.VisionAI.API_BASE_URL =
-  window.__VISIONAI_API_URL__ ||
-  (location.hostname === "localhost" || location.hostname === "127.0.0.1"
-    ? "http://localhost:8000"
-    : "");
+window.VisionAI.API_BASE_URL = "https://face-detection-web.onrender.com";
 
 if (!window.VisionAI.API_BASE_URL) {
   console.warn(
