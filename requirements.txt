@@ -1,0 +1,5 @@
+# Convenience pointer for tools/hosts that expect a requirements.txt at
+# the repo root. The actual dependency list lives in backend/requirements.txt
+# (some platforms only look at the root file, so it's duplicated there too
+# — keep both in sync if you change one).
+-r backend/requirements.txt

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VisionAI — Real-Time Face Detection System</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" defer></script>
+</head>
+<body>
+
+<div id="app" class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand-mark">V</span>
+      <div class="brand-text">
+        <span class="brand-title">VisionAI</span>
+        <span class="brand-subtitle">Face Detection</span>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <button class="nav-item active" data-page="dashboard">
+        <span class="nav-icon" data-icon="grid"></span> Dashboard
+      </button>
+      <button class="nav-item" data-page="analytics">
+        <span class="nav-icon" data-icon="chart"></span> Analytics
+      </button>
+      <button class="nav-item" data-page="history">
+        <span class="nav-icon" data-icon="clock"></span> History
+      </button>
+      <button class="nav-item" data-page="settings">
+        <span class="nav-icon" data-icon="cog"></span> Settings
+      </button>
+    </nav>
+
+    <div class="sidebar__model-info" id="modelInfoCard">
+      <div class="card-title">Model</div>
+      <div class="kv"><span>Name</span><b id="miName">—</b></div>
+      <div class="kv"><span>Framework</span><b id="miFramework">—</b></div>
+      <div class="kv"><span>Input</span><b id="miInput">—</b></div>
+      <div class="kv"><span>Status</span><b id="miStatus" class="pill pill--muted">Checking…</b></div>
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+
+    <!-- Header -->
+    <header class="topbar">
+      <button class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">☰</button>
+      <div class="topbar__title">
+        <h1>VisionAI</h1>
+        <p>Real-Time Face Detection System</p>
+      </div>
+      <div class="topbar__status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking backend…</span>
+      </div>
+    </header>
+
+    <!-- Loading / error banners -->
+    <div id="bannerArea" class="banner-area"></div>
+
+    <!-- ================= DASHBOARD PAGE ================= -->
+    <section class="page active" id="page-dashboard">
+
+      <div class="dashboard-grid">
+
+        <!-- Camera panel -->
+        <div class="card camera-card">
+          <div class="card-header">
+            <h2>Live Camera</h2>
+            <span class="pill" id="cameraStatePill">Camera Off</span>
+          </div>
+
+          <div class="camera-stage" id="cameraStage">
+            <video id="video" playsinline muted autoplay></video>
+            <canvas id="overlay"></canvas>
+            <canvas id="captureCanvas" style="display:none;"></canvas>
+            <canvas id="blurSourceCanvas" style="display:none;"></canvas>
+
+            <div class="camera-placeholder" id="cameraPlaceholder">
+              <div class="placeholder-icon">◎</div>
+              <p>Camera is off. Press <b>Start Camera</b> to begin detection.</p>
+            </div>
+
+            <div class="camera-loading" id="cameraLoading" hidden>
+              <div class="spinner"></div>
+              <p id="cameraLoadingText">Starting camera…</p>
+            </div>
+          </div>
+
+          <div class="camera-controls">
+            <button id="btnStart" class="btn btn--primary">Start Camera</button>
+            <button id="btnStop" class="btn btn--danger" disabled>Stop Camera</button>
+            <button id="btnSnapshot" class="btn btn--ghost" disabled>Capture Snapshot</button>
+            <button id="btnFullscreen" class="btn btn--ghost" disabled>Fullscreen</button>
+            <label class="toggle">
+              <input type="checkbox" id="privacyToggle" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              Privacy Blur
+            </label>
+          </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid">
+          <div class="card metric-card">
+            <span class="metric-label">Faces Detected</span>
+            <span class="metric-value" id="mFaces">0</span>
+          </div>
+          <div class="card metric-card">
+            <span class="metric-label">Average Confidence</span>
+            <span class="metric-value" id="mConfidence">—</span>
+          </div>
+          <div class="card metric-card">
+            <span class="metric-label">FPS</span>
+            <span class="metric-value" id="mFps">0.0</span>
+          </div>
+          <div class="card metric-card">
+            <span class="metric-label">Detection Latency</span>
+            <span class="metric-value" id="mLatency">—</span>
+          </div>
+          <div class="card metric-card">
+            <span class="metric-label">Session Duration</span>
+            <span class="metric-value" id="mDuration">00:00</span>
+          </div>
+          <div class="card metric-card">
+            <span class="metric-label">Frames Processed</span>
+            <span class="metric-value" id="mFrames">0</span>
+          </div>
+        </div>
+
+        <!-- Performance monitor -->
+        <div class="card perf-card">
+          <div class="card-header"><h2>Performance Monitor</h2></div>
+          <div class="perf-rows">
+            <div class="perf-row"><span>Inference</span><b id="pInference">— ms</b></div>
+            <div class="perf-row"><span>Network</span><b id="pNetwork">— ms</b></div>
+            <div class="perf-row"><span>Rendering</span><b id="pRender">— ms</b></div>
+            <div class="perf-row perf-row--total"><span>Total</span><b id="pTotal">— ms</b></div>
+            <div class="perf-row"><span>FPS</span><b id="pFps">—</b></div>
+          </div>
+        </div>
+
+        <!-- Detected faces list -->
+        <div class="card faces-card">
+          <div class="card-header"><h2>Detected Faces</h2></div>
+          <ul class="faces-list" id="facesList">
+            <li class="faces-empty">No faces currently detected.</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= ANALYTICS PAGE ================= -->
+    <section class="page" id="page-analytics">
+      <div class="card">
+        <div class="card-header"><h2>Analytics</h2><span class="pill pill--muted">Live session data</span></div>
+
+        <div class="analytics-stats">
+          <div class="stat"><span>Faces Over Time</span></div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="facesChart" height="90"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="confidenceChart" height="90"></canvas>
+        </div>
+
+        <div class="analytics-grid">
+          <div class="analytics-item"><span>Average Confidence</span><b id="aAvgConfidence">—</b></div>
+          <div class="analytics-item"><span>Max Simultaneous Faces</span><b id="aMaxFaces">—</b></div>
+          <div class="analytics-item"><span>Average FPS</span><b id="aAvgFps">—</b></div>
+          <div class="analytics-item"><span>Average Inference Latency</span><b id="aAvgLatency">—</b></div>
+          <div class="analytics-item"><span>Total Frames Processed</span><b id="aTotalFrames">—</b></div>
+          <div class="analytics-item"><span>Session Duration</span><b id="aDuration">—</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HISTORY PAGE ================= -->
+    <section class="page" id="page-history">
+      <div class="card">
+        <div class="card-header">
+          <h2>Detection History</h2>
+          <button class="btn btn--ghost btn--small" id="btnClearHistory">Clear</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <p class="empty-note">No snapshots yet. Use <b>Capture Snapshot</b> on the Dashboard.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SETTINGS PAGE ================= -->
+    <section class="page" id="page-settings">
+      <div class="settings-grid">
+
+        <div class="card">
+          <div class="card-header"><h2>Camera Settings</h2></div>
+
+          <div class="field">
+            <label for="cameraSelect">Camera</label>
+            <select id="cameraSelect"><option>Default camera</option></select>
+          </div>
+
+          <div class="field">
+            <label for="resolutionSelect">Resolution</label>
+            <select id="resolutionSelect">
+              <option value="640x480">640 × 480</option>
+              <option value="1280x720" selected>1280 × 720</option>
+              <option value="1920x1080">1920 × 1080</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fpsSelect">Processing FPS</label>
+            <select id="fpsSelect">
+              <option value="10">10 FPS</option>
+              <option value="15" selected>15 FPS</option>
+              <option value="20">20 FPS</option>
+              <option value="30">30 FPS</option>
+            </select>
+          </div>
+          <p class="field-note">Camera and resolution changes apply next time you start the camera.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h2>Detection Settings</h2></div>
+
+          <div class="field">
+            <label for="thresholdSlider">
+              Confidence Threshold <span id="thresholdValue">50%</span>
+            </label>
+            <input type="range" id="thresholdSlider" min="30" max="90" step="1" value="50" />
+          </div>
+          <p class="field-note">Applied to the live detector immediately.</p>
+
+          <div class="field">
+            <label class="toggle">
+              <input type="checkbox" id="privacyToggleSettings" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              Privacy Blur (blur detected faces on screen)
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/config.js" defer></script>
+<script src="js/camera.js" defer></script>
+<script src="js/canvas.js" defer></script>
+<script src="js/detection.js" defer></script>
+<script src="js/analytics.js" defer></script>
+<script src="js/settings.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>

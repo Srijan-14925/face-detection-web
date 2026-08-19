@@ -1,0 +1,54 @@
+/* Tablet */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .camera-card, .metrics-grid, .perf-card, .faces-card {
+    grid-column: 1;
+  }
+  .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+  .settings-grid { grid-template-columns: 1fr; }
+  .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Mobile / collapsible sidebar */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    height: 100vh;
+    width: 250px;
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+    z-index: 50;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  .sidebar-backdrop.open { display: block; }
+
+  .icon-btn.sidebar-toggle { display: flex; }
+
+  .topbar { padding: 14px 16px; }
+  .topbar__title h1 { font-size: 16px; }
+  .topbar__title p { display: none; }
+  .topbar__status span#statusText { display: none; }
+
+  .page { padding: 16px 14px 40px; }
+
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .metric-value { font-size: 18px; }
+
+  .camera-controls { flex-direction: column; align-items: stretch; }
+  .toggle { margin-left: 0; justify-content: space-between; }
+
+  .analytics-grid { grid-template-columns: 1fr 1fr; }
+
+  .history-list { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+
+@media (max-width: 420px) {
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .analytics-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,20 @@
+# Python
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.env
+
+# Node (if a frontend tool ever gets added)
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
